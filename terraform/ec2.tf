@@ -19,6 +19,28 @@ resource "aws_instance" "tf_ec2_instance" {
   key_name = aws_key_pair.tf_key_pair.key_name //base configuration
   vpc_security_group_ids = [aws_security_group.tf_ec2_security_group.id] // could have multiple security groups 
   depends_on = [ aws_s3_bucket.tf_s3_bucket ]
+  user_data = <<-EOF
+              #!/bin/bash
+              git clone https://github.com/Sanrose-Bhets/Terraform-Infrastructure.git /home/ubuntu/Terraform-Infrastructure
+              cd /home/ubuntu/Terraform-Infrastructure/nodejs-mysql
+              
+
+              #install node
+              sudo apt update -y 
+              sudo apt install -y nodejs npm
+
+              #edit env vars
+              echo "DB_HOST=" | sudo tee .env
+              echo "DB_USER=" | sudo tee -a .env
+              sudo echo "DB_PASS=" | sudo tee -a .env
+              echo "DB_NAME=" | sudo tee -a .env
+              echo "TABLE_NAME=" | sudo tee -a .env
+              echo "PORT=" | sudo tee -a .env
+
+              #start server
+              npm install
+            EOF
+  user_data_replace_on_change = true
   tags = {
     Name = "NodeJS server"
   }
@@ -76,4 +98,10 @@ resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv6" {
   security_group_id = aws_security_group.tf_ec2_security_group.id
   cidr_ipv6         = "::/0"
   ip_protocol       = "-1" # semantically equivalent to all ports
+}
+
+
+#OUTPUT
+output "ec2_public_ip" {
+  value = "ssh -i ~/.ssh/deployer-key ubuntu@${aws_instance.tf_ec2_instance.public_ip}"
 }
