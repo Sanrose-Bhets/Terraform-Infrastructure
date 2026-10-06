@@ -1,5 +1,15 @@
-﻿.terraform/
+﻿# Dependency directories
+node_modules/
+
+# dotenv environment variable files
+.env
+
+.terraform
 *.tfstate
 *.tfstate.*
-*.tfvars
+*.tfplan
+plan
 crash.log
+*.tfvars
+!*.tfvars.example
+example-1
